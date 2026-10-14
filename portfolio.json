@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "name": "cobalt-studio-alan-vo",
+  "owner": "ALANDVO",
+  "email": "alanvo@gmail.com",
+  "domain": "AI/ML developer tools",
+  "summary": "Work in progress: cobalt-studio-alan-vo",
+  "workflows": [
+    "Import a project Node pin and select the highest installed release that satisfies it",
+    "Record a missing install as data with caller exit code 0",
+    "Search saved projects and export a resolution record as JSON"
+  ],
+  "auth": "not-implemented",
+  "llm_providers": [],
+  "status": "work-in-progress"
+}
