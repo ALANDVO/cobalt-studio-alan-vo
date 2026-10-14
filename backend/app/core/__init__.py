@@ -1,0 +1,1 @@
+"""Deterministic pin resolution."""

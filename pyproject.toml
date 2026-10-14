@@ -1,0 +1,8 @@
+[project]
+name = "cobalt-studio-alan-vo"
+version = "1.0.0"
+description = "Deterministic Node.js pin resolver for machine-learning toolchains."
+authors = [{ name = "Alan Vo", email = "alanvo@gmail.com" }]
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.12"

@@ -1,0 +1,127 @@
+{
+  "provenance": "Hand-labeled examples of this resolver's own rules for machine-learning toolchain pins. The labels were written with the rules, so the score measures whether the implementation still matches those rules. It is not a comparison with another version manager and it is not a trained model.",
+  "snapshot": "2026-10-14",
+  "cases": [
+    {
+      "id": "notebook-ui-node-version-wins",
+      "node_version": "22.14.0\n",
+      "nvmrc": "lts/*",
+      "package_json": {"name": "notebook-ui", "engines": {"node": ">=18"}},
+      "installed": ["22.14.0", "24.11.0", "26.1.0"],
+      "expect_source": "node-version",
+      "expect_status": "satisfied",
+      "expect_matched": "22.14.0",
+      "expect_exit": 0
+    },
+    {
+      "id": "eval-worker-engines-range",
+      "node_version": "",
+      "nvmrc": "",
+      "package_json": {"name": "eval-worker", "engines": {"node": ">=20 <22"}},
+      "installed": ["18.20.4", "20.18.1", "20.19.0", "22.14.0"],
+      "expect_source": "engines",
+      "expect_status": "satisfied",
+      "expect_matched": "20.19.0",
+      "expect_exit": 0
+    },
+    {
+      "id": "model-card-lts-krypton",
+      "node_version": "# comment only\n",
+      "nvmrc": "lts/krypton",
+      "package_json": {"engines": {"node": ">=18"}},
+      "installed": ["22.21.0", "24.11.1", "26.2.0"],
+      "expect_source": "nvmrc",
+      "expect_status": "satisfied",
+      "expect_matched": "24.11.1",
+      "expect_exit": 0
+    },
+    {
+      "id": "training-ui-lts-star-skips-current",
+      "node_version": "",
+      "nvmrc": "lts/*",
+      "package_json": "",
+      "installed": ["22.21.0", "24.11.1", "26.12.0"],
+      "expect_source": "nvmrc",
+      "expect_status": "satisfied",
+      "expect_matched": "24.11.1",
+      "expect_exit": 0
+    },
+    {
+      "id": "missing-runtime-stays-exit-zero",
+      "node_version": "20.11.1",
+      "nvmrc": "18",
+      "package_json": {"engines": {"node": ">=18"}},
+      "installed": ["18.20.4", "22.14.0"],
+      "expect_source": "node-version",
+      "expect_status": "missing",
+      "expect_matched": null,
+      "expect_exit": 0
+    },
+    {
+      "id": "alias-node-highest-installed",
+      "node_version": "",
+      "nvmrc": "node",
+      "package_json": "",
+      "installed": ["20.18.1", "24.11.0"],
+      "expect_source": "nvmrc",
+      "expect_status": "satisfied",
+      "expect_matched": "24.11.0",
+      "expect_exit": 0
+    },
+    {
+      "id": "prerelease-does-not-fall-through",
+      "node_version": "20.0.0-rc.1",
+      "nvmrc": "18",
+      "package_json": "",
+      "installed": ["18.20.4", "20.0.0"],
+      "expect_source": "node-version",
+      "expect_status": "invalid",
+      "expect_matched": null,
+      "expect_exit": 2
+    },
+    {
+      "id": "caret-or-highest-match",
+      "node_version": "",
+      "nvmrc": "",
+      "package_json": {"engines": {"node": "^18.17.0 || ^22.0.0"}},
+      "installed": ["18.16.0", "18.20.4", "22.14.0", "24.0.0"],
+      "expect_source": "engines",
+      "expect_status": "satisfied",
+      "expect_matched": "22.14.0",
+      "expect_exit": 0
+    },
+    {
+      "id": "inline-comment-and-minor-line",
+      "node_version": "# pinned for the eval UI\n\n20.18 # not 20.19\n",
+      "nvmrc": "",
+      "package_json": "",
+      "installed": ["20.17.0", "20.18.0", "20.18.2", "20.19.0"],
+      "expect_source": "node-version",
+      "expect_status": "satisfied",
+      "expect_matched": "20.18.2",
+      "expect_exit": 0
+    },
+    {
+      "id": "partial-hyphen-rejected",
+      "node_version": "",
+      "nvmrc": "",
+      "package_json": {"engines": {"node": "18.0 - 20"}},
+      "installed": ["18.20.4", "20.11.1"],
+      "expect_source": "engines",
+      "expect_status": "invalid",
+      "expect_matched": null,
+      "expect_exit": 2
+    },
+    {
+      "id": "lts-star-missing-when-only-current-installed",
+      "node_version": "",
+      "nvmrc": "lts/*",
+      "package_json": "",
+      "installed": ["26.12.0"],
+      "expect_source": "nvmrc",
+      "expect_status": "missing",
+      "expect_matched": null,
+      "expect_exit": 0
+    }
+  ]
+}
