@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass
 
+from app.core.binary import BinaryInfo, analyze_binary, check_installed_binaries
 from app.core.lts import SNAPSHOT, latest
 from app.core.semver import (
     AliasConstraint,
@@ -39,6 +40,7 @@ class Resolution:
     lts_snapshot: str
     lts_latest_codename: str
     lts_latest_major: int
+    binary_info: dict[str, BinaryInfo]
 
 
 def resolve_pin(
@@ -47,6 +49,7 @@ def resolve_pin(
     nvmrc: str | None,
     package_json: str | None,
     installed: list[Version],
+    base_path: str | None = None,
 ) -> Resolution:
     node_line = pin_line(node_version)
     nvm_line = pin_line(nvmrc)
@@ -58,12 +61,18 @@ def resolve_pin(
         "lts_latest_major": major,
     }
 
+    # Check binary compatibility if base_path provided
+    binary_info: dict[str, BinaryInfo] = {}
+    if base_path:
+        installed_versions = [v.label() for v in installed]
+        binary_info = check_installed_binaries(installed_versions, base_path)
+
     if node_line is not None:
         ignored = _ignored("node-version", nvm_line, engines_state)
-        return _from_request("node-version", node_line, installed, ignored, base)
+        return _from_request("node-version", node_line, installed, ignored, base, binary_info)
     if nvm_line is not None:
         ignored = _ignored("nvmrc", None, engines_state)
-        return _from_request("nvmrc", nvm_line, installed, ignored, base)
+        return _from_request("nvmrc", nvm_line, installed, ignored, base, binary_info)
     if engines_state == "invalid":
         return Resolution(
             source="engines",
@@ -74,10 +83,11 @@ def resolve_pin(
             explanation=engines_value or "package.json could not be read.",
             matches=(),
             ignored=("Did not read a Node pin from package.json.",),
+            binary_info=binary_info,
             **base,
         )
     if engines_state == "present":
-        return _from_request("engines", engines_value or "", installed, (), base)
+        return _from_request("engines", engines_value or "", installed, (), base, binary_info)
     raise NoPin("No version pin was provided. Add .node-version, .nvmrc, or package.json engines.node.")
 
 
@@ -134,6 +144,7 @@ def _from_request(
     installed: list[Version],
     ignored: tuple[str, ...],
     base: dict[str, str | int],
+    binary_info: dict[str, BinaryInfo],
 ) -> Resolution:
     label = _source_label(source)
     try:
@@ -148,6 +159,7 @@ def _from_request(
             explanation=f"{label} pin {requested!r} was not accepted: {exc} Later pin files were not used.",
             matches=(),
             ignored=ignored + ("Did not fall through to a lower-precedence pin.",),
+            binary_info=binary_info,
             **base,
         )
     chosen = constraint.select(installed)
@@ -162,9 +174,27 @@ def _from_request(
             explanation=_missing_text(label, requested, constraint),
             matches=(),
             ignored=ignored,
+            binary_info=binary_info,
             **base,
         )
     matched = labels[0]
+
+    # Check if the matched binary is compatible
+    matched_info = binary_info.get(matched)
+    if matched_info is not None and not matched_info.compatible:
+        return Resolution(
+            source=source,
+            requested=requested,
+            status="incompatible",
+            matched=matched,
+            caller_exit_code=1,
+            explanation=f"{label} pin {requested} matches installed {matched}, but the binary is incompatible: {matched_info.reason}",
+            matches=labels,
+            ignored=ignored,
+            binary_info=binary_info,
+            **base,
+        )
+
     return Resolution(
         source=source,
         requested=requested,
@@ -176,6 +206,7 @@ def _from_request(
         + " The highest matching release was selected.",
         matches=labels,
         ignored=ignored,
+        binary_info=binary_info,
         **base,
     )
 

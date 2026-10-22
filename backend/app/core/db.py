@@ -34,6 +34,7 @@ CREATE TABLE IF NOT EXISTS resolutions (
   lts_snapshot TEXT NOT NULL,
   lts_latest_codename TEXT NOT NULL,
   lts_latest_major INTEGER NOT NULL,
+  binary_info_json TEXT NOT NULL DEFAULT '{}',
   created_at TEXT NOT NULL
 );
 

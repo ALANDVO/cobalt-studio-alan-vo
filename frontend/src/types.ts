@@ -1,3 +1,18 @@
+export type BinaryInfo = {
+  version: string;
+  path: string;
+  architecture: string;
+  format: string;
+  interpreter: string | null;
+  compatible: boolean;
+  reason: string | null;
+};
+
+export type BinaryCheckInput = {
+  installed: string[];
+  base_path: string;
+};
+
 export type Project = {
   id: number;
   name: string;
@@ -29,6 +44,7 @@ export type Resolution = {
   matches: string[];
   ignored: string[];
   inputs: ResolutionInputs;
+  binary_info: Record<string, BinaryInfo>;
   lts_snapshot: string;
   lts_latest_codename: string;
   lts_latest_major: number;

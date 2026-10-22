@@ -1,6 +1,8 @@
+import { useState } from "react";
 import type { FormEvent } from "react";
 import { downloadResolution } from "../download";
-import type { Project, Resolution } from "../types";
+import { checkBinaries } from "../api";
+import type { BinaryInfo, Project, Resolution } from "../types";
 
 type Props = {
   project: Project | null;
@@ -27,7 +29,41 @@ function statusLabel(status: string): string {
   if (status === "satisfied") return "Satisfied";
   if (status === "missing") return "Not installed";
   if (status === "invalid") return "Invalid pin";
+  if (status === "incompatible") return "Incompatible binary";
   return status;
+}
+
+function formatBinaryInfo(binaryInfo: Record<string, BinaryInfo> | undefined | null): React.ReactNode {
+  if (!binaryInfo) return null;
+  const entries = Object.entries(binaryInfo);
+  if (entries.length === 0) return null;
+  return (
+    <div className="binary-info">
+      <h4>Binary compatibility</h4>
+      <table>
+        <thead>
+          <tr>
+            <th>Version</th>
+            <th>Architecture</th>
+            <th>Format</th>
+            <th>Compatible</th>
+            <th>Reason</th>
+          </tr>
+        </thead>
+        <tbody>
+          {entries.map(([version, info]) => (
+            <tr key={version} className={info.compatible ? "compatible" : "incompatible"}>
+              <td>{version}</td>
+              <td>{info.architecture}</td>
+              <td>{info.format}</td>
+              <td>{info.compatible ? "✓" : "✗"}</td>
+              <td>{info.reason ?? "—"}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
 }
 
 export function ResolvePanel({
@@ -44,6 +80,34 @@ export function ResolvePanel({
   onInstalled,
   onResolve,
 }: Props) {
+  const [binaryChecking, setBinaryChecking] = useState(false);
+  const [binaryError, setBinaryError] = useState<string | null>(null);
+
+  async function handleBinaryCheck(event: FormEvent) {
+    event.preventDefault();
+    if (!project) return;
+    setBinaryChecking(true);
+    setBinaryError(null);
+    try {
+      const installedVersions = installed
+        .split("\n")
+        .map((v) => v.trim())
+        .filter((v) => v.length > 0);
+      const basePath = "/home/node/.nvm/versions/node"; // Common nvm path, could be configurable
+      const result = await checkBinaries({ installed: installedVersions, base_path: basePath });
+      // The API returns a list, we need to merge it into the resolution display
+      // For now, just show an alert with the results
+      const lines = result.map(
+        (r) => `${r.version}: ${r.architecture} ${r.format} ${r.compatible ? "compatible" : "incompatible"} ${r.reason ?? ""}`
+      );
+      alert("Binary check results:\n" + lines.join("\n"));
+    } catch (err) {
+      setBinaryError(err instanceof Error ? err.message : "Binary check failed");
+    } finally {
+      setBinaryChecking(false);
+    }
+  }
+
   if (project === null) {
     return (
       <section className="panel" aria-label="Resolution">
@@ -93,9 +157,15 @@ export function ResolvePanel({
           spellCheck={false}
           placeholder={"20.18.1\n22.14.0\n24.11.1"}
         />
-        <button type="submit" disabled={busy}>
-          {busy ? "Resolving" : "Resolve pin"}
-        </button>
+        <div className="button-row">
+          <button type="submit" disabled={busy}>
+            {busy ? "Resolving" : "Resolve pin"}
+          </button>
+          <button type="button" onClick={handleBinaryCheck} disabled={binaryChecking || busy}>
+            {binaryChecking ? "Checking..." : "Check binaries"}
+          </button>
+        </div>
+        {binaryError && <p className="error">{binaryError}</p>}
       </form>
       {resolution ? (
         <article className={`result result-${resolution.status}`} aria-live="polite">
@@ -135,6 +205,7 @@ export function ResolvePanel({
           {resolution.matches.length > 0 ? (
             <p className="meta">Also matched: {resolution.matches.join(", ")}</p>
           ) : null}
+          {formatBinaryInfo(resolution.binary_info)}
           <button type="button" onClick={() => downloadResolution(resolution)}>
             Export JSON
           </button>

@@ -90,5 +90,21 @@ class VersionOut(BaseModel):
     version: str
 
 
+class BinaryInfoOut(BaseModel):
+    version: str
+    path: str
+    architecture: str
+    format: str
+    interpreter: str | None
+    compatible: bool
+    reason: str | None
+
+
+class BinaryCheckIn(BaseModel):
+    installed: list[str] = Field(default_factory=list, max_length=200)
+    base_path: str = Field(default="", max_length=4096)
+    version: str
+
+
 class HealthOut(BaseModel):
     status: str

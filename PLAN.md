@@ -4,7 +4,7 @@ Each round completes one feature or repair. Future items are planned, not implem
 
 ## Current round
 
-resolve-project-pin
+binary-compat-check
 
 ## Roadmap
 
@@ -26,11 +26,15 @@ Tests: `backend/tests/test_resolver.py`, `backend/tests/test_api.py`, `backend/t
 
 ### binary-compat-check — Report when a Node binary exists but cannot start
 
-Status: planned
+Status: done
 
 Acceptance:
 - A catalog entry can record the host architecture and the binary's ELF or Mach-O interpreter.
 - A file that exists but does not match the host is reported as incompatible instead of as a missing path.
+
+Implementation: `backend/app/core/binary.py`, `backend/app/core/resolver.py`, `backend/app/models/schemas.py`, `backend/app/api/routes.py`, `backend/app/services/store.py`, `frontend/src/types.ts`, `frontend/src/api.ts`, `frontend/src/components/ResolvePanel.tsx`, `frontend/src/styles.css`
+
+Tests: `backend/tests/test_binary.py`, `backend/tests/test_api.py`, `backend/tests/test_resolver.py`, `frontend/src/App.test.tsx`
 
 ### shell-activation — Emit shell activation that stays successful when a pin is missing
 

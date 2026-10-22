@@ -6,6 +6,8 @@ from fastapi import APIRouter, HTTPException, Query, Request
 
 from app.core.version import product_version
 from app.models.schemas import (
+    BinaryCheckIn,
+    BinaryInfoOut,
     HealthOut,
     ProjectIn,
     ProjectOut,
@@ -18,7 +20,9 @@ from app.models.schemas import (
 from app.services.store import CatalogRejected, NoPinRejected, add_resolution, create_project, get_project, get_resolution, list_projects, list_resolutions
 
 router = APIRouter()
-_STATUSES = {"satisfied", "missing", "invalid"}
+_STATUSES = {"satisfied", "missing", "invalid", "incompatible"}
+
+
 
 
 @router.get("/api/health", response_model=HealthOut)
@@ -89,3 +93,22 @@ def get_one_resolution(resolution_id: int, request: Request) -> ResolutionOut:
     if stored is None:
         raise HTTPException(status_code=404, detail="Resolution not found.")
     return ResolutionOut(**stored)
+
+
+@router.post("/api/binary/check", response_model=list[BinaryInfoOut])
+def check_binaries(body: BinaryCheckIn, request: Request) -> list[BinaryInfoOut]:
+    from app.core.binary import check_installed_binaries
+
+    results = check_installed_binaries(body.installed, body.base_path)
+    return [
+        BinaryInfoOut(
+            version=version,
+            path=info.path,
+            architecture=info.architecture,
+            format=info.format,
+            interpreter=info.interpreter,
+            compatible=info.compatible,
+            reason=info.reason,
+        )
+        for version, info in results.items()
+    ]
