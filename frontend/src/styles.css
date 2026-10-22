@@ -156,3 +156,50 @@ h3 { margin: 0 0 0.6rem; }
   .search-row { display: grid; }
   .version { margin-top: 0.4rem; }
 }
+
+.result-incompatible { background: var(--bad-bg); color: var(--bad); }
+
+.binary-info {
+  margin-top: 1rem;
+}
+.binary-info h4 {
+  margin: 0 0 0.5rem;
+  font-size: 0.95rem;
+}
+.binary-info table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+.binary-info th,
+.binary-info td {
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--border);
+  text-align: left;
+}
+.binary-info th {
+  background: var(--panel);
+  font-weight: 650;
+}
+.binary-info tr.compatible td {
+  background: var(--ok-bg);
+}
+.binary-info tr.incompatible td {
+  background: var(--bad-bg);
+}
+.binary-info td:last-child {
+  font-family: monospace;
+  white-space: pre-wrap;
+  max-width: 30ch;
+}
+
+.button-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.error {
+  color: var(--bad);
+  margin-top: 0.5rem;
+}

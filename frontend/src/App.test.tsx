@@ -104,6 +104,7 @@ it("shows a missing install from the API and exports that record", async () => {
     matches: [],
     ignored: ["Ignored .nvmrc because a higher-precedence pin is set."],
     inputs: { node_version: "22.2.0", nvmrc: "18", package_json: "", installed: ["20.11.1"] },
+    binary_info: {},
     lts_snapshot: "2099-01-01",
     lts_latest_codename: "sampleline",
     lts_latest_major: 99,

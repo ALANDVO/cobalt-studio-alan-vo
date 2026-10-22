@@ -1,11 +1,10 @@
 """Transactional project and resolution storage."""
 
-from __future__ import annotations
-
 import json
 import sqlite3
 from datetime import datetime, timezone
 
+from app.core.binary import BinaryInfo
 from app.core.db import session
 from app.core.resolver import NoPin, Resolution, resolve_pin
 from app.core.semver import RequestError, parse_installed
@@ -77,6 +76,7 @@ def add_resolution(path: str, project_id: int, body: ResolutionIn) -> dict:
             nvmrc=body.nvmrc,
             package_json=body.package_json,
             installed=catalog,
+            base_path=body.base_path if hasattr(body, "base_path") else None,
         )
     except NoPin as exc:
         raise NoPinRejected(str(exc)) from exc
@@ -109,14 +109,28 @@ def get_resolution(path: str, resolution_id: int) -> dict | None:
 def _insert_resolution(path: str, project_id: int, body: ResolutionIn, result: Resolution) -> dict:
     stamp = utc_now()
     installed = [item.strip() for item in body.installed if item.strip()]
+    binary_info_json = json.dumps(
+        {
+            version: {
+                "version": info.version,
+                "path": info.path,
+                "architecture": info.architecture,
+                "format": info.format,
+                "interpreter": info.interpreter,
+                "compatible": info.compatible,
+                "reason": info.reason,
+            }
+            for version, info in result.binary_info.items()
+        }
+    )
     with session(path) as connection:
         cursor = connection.execute(
             """
             INSERT INTO resolutions (
               project_id, source, requested, status, matched, caller_exit_code, explanation,
               matches_json, ignored_json, installed_json, node_version, nvmrc, package_json,
-              lts_snapshot, lts_latest_codename, lts_latest_major, created_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+              lts_snapshot, lts_latest_codename, lts_latest_major, binary_info_json, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 project_id,
@@ -135,6 +149,7 @@ def _insert_resolution(path: str, project_id: int, body: ResolutionIn, result: R
                 result.lts_snapshot,
                 result.lts_latest_codename,
                 result.lts_latest_major,
+                binary_info_json,
                 stamp,
             ),
         )
@@ -162,6 +177,19 @@ def _audit(connection: sqlite3.Connection, action: str, entity: str, entity_id: 
 
 def _resolution_dict(row: sqlite3.Row) -> dict:
     installed = json.loads(row["installed_json"])
+    binary_info_json = row["binary_info_json"] if "binary_info_json" in row.keys() else "{}"
+    binary_info_raw = json.loads(binary_info_json)
+    binary_info = {}
+    for version, info in binary_info_raw.items():
+        binary_info[version] = {
+            "version": info.get("version"),
+            "path": info.get("path"),
+            "architecture": info.get("architecture"),
+            "format": info.get("format"),
+            "interpreter": info.get("interpreter"),
+            "compatible": info.get("compatible"),
+            "reason": info.get("reason"),
+        }
     return {
         "id": row["id"],
         "project_id": row["project_id"],
@@ -179,6 +207,7 @@ def _resolution_dict(row: sqlite3.Row) -> dict:
             "package_json": row["package_json"],
             "installed": installed,
         },
+        "binary_info": binary_info,
         "lts_snapshot": row["lts_snapshot"],
         "lts_latest_codename": row["lts_latest_codename"],
         "lts_latest_major": row["lts_latest_major"],

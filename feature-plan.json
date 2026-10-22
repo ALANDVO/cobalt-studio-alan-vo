@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "current_feature": "resolve-project-pin",
+  "current_feature": "binary-compat-check",
   "features": [
     {
       "id": "resolve-project-pin",
@@ -32,10 +32,27 @@
     {
       "id": "binary-compat-check",
       "title": "Report when a Node binary exists but cannot start",
-      "status": "planned",
+      "status": "done",
       "acceptance": [
         "A catalog entry can record the host architecture and the binary's ELF or Mach-O interpreter.",
         "A file that exists but does not match the host is reported as incompatible instead of as a missing path."
+      ],
+      "implementation": [
+        "backend/app/core/binary.py",
+        "backend/app/core/resolver.py",
+        "backend/app/models/schemas.py",
+        "backend/app/api/routes.py",
+        "backend/app/services/store.py",
+        "frontend/src/types.ts",
+        "frontend/src/api.ts",
+        "frontend/src/components/ResolvePanel.tsx",
+        "frontend/src/styles.css"
+      ],
+      "tests": [
+        "backend/tests/test_binary.py",
+        "backend/tests/test_api.py",
+        "backend/tests/test_resolver.py",
+        "frontend/src/App.test.tsx"
       ]
     },
     {

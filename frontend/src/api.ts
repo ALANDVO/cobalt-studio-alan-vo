@@ -1,4 +1,4 @@
-import type { Page, Project, ProjectInput, Resolution, ResolutionInput, VersionInfo } from "./types";
+import type { BinaryCheckInput, BinaryInfo, Page, Project, ProjectInput, Resolution, ResolutionInput, VersionInfo } from "./types";
 
 const base = (import.meta.env.VITE_API_BASE ?? "http://127.0.0.1:8000").replace(/\/$/, "");
 
@@ -57,6 +57,12 @@ export function createProject(input: ProjectInput): Promise<Project> {
 
 export function createResolution(projectId: number, input: ResolutionInput): Promise<Resolution> {
   return request<Resolution>(`/api/projects/${projectId}/resolutions`, {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+}
+export function checkBinaries(input: BinaryCheckInput): Promise<BinaryInfo[]> {
+  return request<BinaryInfo[]>("/api/binary/check", {
     method: "POST",
     body: JSON.stringify(input),
   });

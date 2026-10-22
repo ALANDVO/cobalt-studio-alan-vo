@@ -2,7 +2,11 @@
   "name": "cobalt-studio-alan-vo",
   "private": true,
   "version": "1.0.0",
-  "author": "Alan Vo <alanvo@gmail.com>",
+  "author": {
+    "name": "Alan Vo",
+    "email": "alanvo@gmail.com",
+    "url": "https://github.com/ALANDVO"
+  },
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
