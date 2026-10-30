@@ -15,3 +15,4 @@ coverage/
 .omp/
 *.tsbuildinfo
 backend/data/
+venv/

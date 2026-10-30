@@ -16,7 +16,9 @@ type Props = {
   onNvmrc: (value: string) => void;
   onPackageJson: (value: string) => void;
   onInstalled: (value: string) => void;
+  onBasePath: (value: string) => void;
   onResolve: (event: FormEvent) => void;
+  basePath: string;
 };
 
 const SOURCE_LABEL: Record<string, string> = {
@@ -78,29 +80,27 @@ export function ResolvePanel({
   onNvmrc,
   onPackageJson,
   onInstalled,
+  onBasePath,
   onResolve,
+  basePath,
 }: Props) {
   const [binaryChecking, setBinaryChecking] = useState(false);
   const [binaryError, setBinaryError] = useState<string | null>(null);
+  const [binaryResults, setBinaryResults] = useState<BinaryInfo[] | null>(null);
 
   async function handleBinaryCheck(event: FormEvent) {
     event.preventDefault();
     if (!project) return;
     setBinaryChecking(true);
     setBinaryError(null);
+    setBinaryResults(null);
     try {
       const installedVersions = installed
         .split("\n")
         .map((v) => v.trim())
         .filter((v) => v.length > 0);
-      const basePath = "/home/node/.nvm/versions/node"; // Common nvm path, could be configurable
       const result = await checkBinaries({ installed: installedVersions, base_path: basePath });
-      // The API returns a list, we need to merge it into the resolution display
-      // For now, just show an alert with the results
-      const lines = result.map(
-        (r) => `${r.version}: ${r.architecture} ${r.format} ${r.compatible ? "compatible" : "incompatible"} ${r.reason ?? ""}`
-      );
-      alert("Binary check results:\n" + lines.join("\n"));
+      setBinaryResults(result);
     } catch (err) {
       setBinaryError(err instanceof Error ? err.message : "Binary check failed");
     } finally {
@@ -157,6 +157,14 @@ export function ResolvePanel({
           spellCheck={false}
           placeholder={"20.18.1\n22.14.0\n24.11.1"}
         />
+        <label htmlFor="base-path">Node binaries base path</label>
+        <input
+          id="base-path"
+          type="text"
+          value={basePath}
+          onChange={(event) => onBasePath(event.target.value)}
+          placeholder={"/home/node/.nvm/versions/node"}
+        />
         <div className="button-row">
           <button type="submit" disabled={busy}>
             {busy ? "Resolving" : "Resolve pin"}
@@ -166,6 +174,33 @@ export function ResolvePanel({
           </button>
         </div>
         {binaryError && <p className="error">{binaryError}</p>}
+        {binaryResults && binaryResults.length > 0 && (
+          <div className="binary-check-results">
+            <h4>Binary check results</h4>
+            <table>
+              <thead>
+                <tr>
+                  <th>Version</th>
+                  <th>Architecture</th>
+                  <th>Format</th>
+                  <th>Compatible</th>
+                  <th>Reason</th>
+                </tr>
+              </thead>
+              <tbody>
+                {binaryResults.map((info) => (
+                  <tr key={info.version} className={info.compatible ? "compatible" : "incompatible"}>
+                    <td>{info.version}</td>
+                    <td>{info.architecture}</td>
+                    <td>{info.format}</td>
+                    <td>{info.compatible ? "✓" : "✗"}</td>
+                    <td>{info.reason ?? "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </form>
       {resolution ? (
         <article className={`result result-${resolution.status}`} aria-live="polite">
