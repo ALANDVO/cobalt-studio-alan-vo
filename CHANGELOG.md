@@ -1,8 +1,18 @@
 # Changelog
 
+## 1.2.0 — work-in-progress checkpoint
+
+Partial code published for continued development. Known issues: STATUS.md.
+
 ## 1.1.0 — work-in-progress checkpoint
 
 Partial code published for continued development. Known issues: STATUS.md.
+
+### Enhancements since last checkpoint
+
+- Binary compatibility check: user-configurable Node binaries base path (default `/home/node/.nvm/versions/node`)
+- Binary check results now display inline in a table instead of an alert dialog
+- Added CSS styles for binary check results table
 
 ## 1.0.0 — work-in-progress checkpoint
 

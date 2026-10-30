@@ -18,6 +18,7 @@ export function App() {
   const [nvmrc, setNvmrc] = useState("");
   const [packageJson, setPackageJson] = useState("");
   const [installed, setInstalled] = useState("");
+  const [basePath, setBasePath] = useState("/home/node/.nvm/versions/node");
   const [resolution, setResolution] = useState<Resolution | null>(null);
   const [saving, setSaving] = useState(false);
   const [resolving, setResolving] = useState(false);
@@ -156,6 +157,8 @@ export function App() {
           onNvmrc={setNvmrc}
           onPackageJson={setPackageJson}
           onInstalled={setInstalled}
+          onBasePath={setBasePath}
+          basePath={basePath}
           onResolve={(event) => {
             void onResolve(event);
           }}
