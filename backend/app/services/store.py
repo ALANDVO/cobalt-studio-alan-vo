@@ -112,7 +112,7 @@ def _insert_resolution(path: str, project_id: int, body: ResolutionIn, result: R
     binary_info_json = json.dumps(
         {
             version: {
-                "version": info.version,
+                "version": version,
                 "path": info.path,
                 "architecture": info.architecture,
                 "format": info.format,

@@ -41,6 +41,7 @@ class ResolutionIn(BaseModel):
     nvmrc: str = Field(default="", max_length=20_000)
     package_json: str = Field(default="", max_length=100_000)
     installed: list[str] = Field(default_factory=list, max_length=200)
+    base_path: str = Field(default="", max_length=4096)
 
     @field_validator("installed")
     @classmethod
@@ -73,6 +74,7 @@ class ResolutionOut(BaseModel):
     matches: list[str]
     ignored: list[str]
     inputs: ResolutionInputs
+    binary_info: dict[str, BinaryInfoOut]
     lts_snapshot: str
     lts_latest_codename: str
     lts_latest_major: int
