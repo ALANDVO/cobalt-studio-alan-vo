@@ -96,6 +96,7 @@ export function App() {
           .split(/\r?\n/)
           .map((line) => line.trim())
           .filter((line) => line.length > 0),
+        base_path: basePath,
       });
       setResolution(created);
     } catch (err: unknown) {

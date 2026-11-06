@@ -56,6 +56,7 @@ export type ResolutionInput = {
   nvmrc: string;
   package_json: string;
   installed: string[];
+  base_path: string;
 };
 
 export type Page<T> = {
