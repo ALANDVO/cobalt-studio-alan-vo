@@ -37,3 +37,7 @@ First checkpoint of Cobalt Studio.
 - Persist projects, resolutions, and an audit row in SQLite, with search and pagination.
 - Add a local web UI to create a project, search, resolve, and export the API record.
 - Score the resolver against the hand-labeled cases in `backend/app/data/pin_cases.json`.
+
+---
+
+Alan Vo · [alanvo.net](https://alanvo.net)

@@ -70,3 +70,6 @@ Acceptance:
 - An explanation is requested only when the operator turns it on and LLM_API_KEY is set on the server.
 - The prompt is built from the stored resolution, and a provider failure is returned as an error without inventing a match.
 
+---
+
+Alan Vo · [alanvo.net](https://alanvo.net)
