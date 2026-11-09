@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import sqlite3
+import tempfile
 from pathlib import Path
 
 import pytest
@@ -147,3 +148,110 @@ def test_audit_log_records_project_and_resolution_together(client: TestClient):
     finally:
         connection.close()
     assert count == 1
+
+
+
+def test_binary_check_endpoint_returns_compatibility_info(client: TestClient):
+    """The /api/binary/check endpoint returns binary compatibility for installed versions."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        # Create a fake node binary
+        version_dir = Path(tmpdir) / "v20.11.1" / "bin"
+        version_dir.mkdir(parents=True)
+        node_bin = version_dir / "node"
+        node_bin.write_text("#!/bin/sh\necho 'v20.11.1'\n")
+        node_bin.chmod(0o755)
+
+        response = client.post(
+            "/api/binary/check",
+            json={"installed": ["20.11.1"], "base_path": tmpdir, "version": "20.11.1"},
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data) == 1
+        assert data[0]["version"] == "20.11.1"
+        assert data[0]["compatible"] is True
+        assert data[0]["reason"] is None
+        assert data[0]["architecture"] == "x86_64"
+        assert data[0]["format"] == "unknown"  # Script, not ELF/Mach-O
+
+
+def test_binary_check_endpoint_reports_missing_binary(client: TestClient):
+    """The /api/binary/check endpoint reports missing binaries as incompatible."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        response = client.post(
+            "/api/binary/check",
+            json={"installed": ["20.11.1"], "base_path": tmpdir, "version": "20.11.1"},
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert "not found" in data[0]["reason"]
+        assert data[0]["compatible"] is False
+
+
+def test_resolution_with_incompatible_binary_returns_incompatible_status(client: TestClient):
+    """When a matched binary is incompatible, resolution status is incompatible."""
+    project = _project(client, name="binary-test")
+
+    # Create a fake node binary with wrong architecture (simulate aarch64 on x86_64)
+    # We can't easily create an ELF binary with wrong arch in test, so we test
+    # the logic by providing a base_path where the binary exists but is not executable
+    with tempfile.TemporaryDirectory() as tmpdir:
+        version_dir = Path(tmpdir) / "v20.11.1" / "bin"
+        version_dir.mkdir(parents=True)
+        node_bin = version_dir / "node"
+        # Create a non-executable file (will be detected as incompatible)
+        node_bin.write_text("not a binary")
+        # Don't make it executable
+
+        response = client.post(
+            f"/api/projects/{project['id']}/resolutions",
+            json={
+                "node_version": "20.11.1",
+                "nvmrc": "",
+                "package_json": "",
+                "installed": ["20.11.1"],
+                "base_path": tmpdir,
+            },
+        )
+        assert response.status_code == 201
+        data = response.json()
+        # The binary is non-executable, so it should be incompatible
+        assert data["status"] == "incompatible"
+        assert data["caller_exit_code"] == 1
+        assert "incompatible" in data["explanation"].lower()
+        assert data["matched"] == "20.11.1"
+        assert data["binary_info"] is not None
+        assert "20.11.1" in data["binary_info"]
+        assert data["binary_info"]["20.11.1"]["compatible"] is False
+
+
+def test_resolution_with_compatible_binary_returns_satisfied_status(client: TestClient):
+    """When a matched binary is compatible, resolution status is satisfied."""
+    project = _project(client, name="binary-test-compat")
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        version_dir = Path(tmpdir) / "v20.11.1" / "bin"
+        version_dir.mkdir(parents=True)
+        node_bin = version_dir / "node"
+        # Create an executable script that runs successfully
+        node_bin.write_text("#!/bin/sh\necho 'v20.11.1'\n")
+        node_bin.chmod(0o755)
+
+        response = client.post(
+            f"/api/projects/{project['id']}/resolutions",
+            json={
+                "node_version": "20.11.1",
+                "nvmrc": "",
+                "package_json": "",
+                "installed": ["20.11.1"],
+                "base_path": tmpdir,
+            },
+        )
+        assert response.status_code == 201
+        data = response.json()
+        assert data["status"] == "satisfied"
+        assert data["caller_exit_code"] == 0
+        assert data["matched"] == "20.11.1"
+        assert data["binary_info"] is not None
+        assert "20.11.1" in data["binary_info"]
+        assert data["binary_info"]["20.11.1"]["compatible"] is True
