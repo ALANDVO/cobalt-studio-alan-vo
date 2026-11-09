@@ -173,4 +173,107 @@ def test_rejected_syntax_covers_aliases_wildcards_and_hyphen():
 def test_full_hyphen_range_is_inclusive():
     result = resolve(node_version="18.20.0 - 20.11.1", installed=installed("18.19.0", "18.20.0", "20.11.1", "20.11.2"))
     assert result.matches == ("20.11.1", "18.20.0")
+
+def test_incompatible_binary_returns_incompatible_status():
+    """When a binary exists but is incompatible, status should be incompatible."""
+    from app.core.binary import BinaryInfo
+    from app.core.resolver import resolve_pin
+    from app.core.semver import parse_installed
+
+    installed_versions = parse_installed(["20.11.1"])
+    # Create a fake binary info that indicates incompatibility
+    binary_info = {
+        "20.11.1": BinaryInfo(
+            path="/fake/path/node",
+            architecture="aarch64",  # Different from host (x86_64)
+            format="ELF",
+            interpreter="/lib/ld-linux-aarch64.so.1",
+            compatible=False,
+            reason="Binary architecture aarch64 does not match host x86_64",
+        )
+    }
+
+    # We need to test the internal _from_request function since resolve_pin
+    # calls check_installed_binaries internally. Let's test the resolution logic directly.
+    from app.core.resolver import _from_request
+    from app.core.semver import parse_request
+
+    constraint = parse_request("20.11.1")
+    base = {"lts_snapshot": "2026-10-14", "lts_latest_codename": "krypton", "lts_latest_major": 24}
+
+    result = _from_request(
+        source="node-version",
+        requested="20.11.1",
+        installed=installed_versions,
+        ignored=(),
+        base=base,
+        binary_info=binary_info,
+    )
+
+    assert result.status == "incompatible"
+    assert result.matched == "20.11.1"
+    assert result.caller_exit_code == 1
+    assert "incompatible" in result.explanation.lower()
+    assert result.binary_info == binary_info
+
+
+def test_compatible_binary_returns_satisfied_status():
+    """When a binary exists and is compatible, status should be satisfied."""
+    from app.core.binary import BinaryInfo
+    from app.core.resolver import _from_request
+    from app.core.semver import parse_installed, parse_request
+
+    installed_versions = parse_installed(["20.11.1"])
+    binary_info = {
+        "20.11.1": BinaryInfo(
+            path="/fake/path/node",
+            architecture="x86_64",  # Same as host
+            format="ELF",
+            interpreter="/lib64/ld-linux-x86-64.so.2",
+            compatible=True,
+            reason=None,
+        )
+    }
+
+    constraint = parse_request("20.11.1")
+    base = {"lts_snapshot": "2026-10-14", "lts_latest_codename": "krypton", "lts_latest_major": 24}
+
+    result = _from_request(
+        source="node-version",
+        requested="20.11.1",
+        installed=installed_versions,
+        ignored=(),
+        base=base,
+        binary_info=binary_info,
+    )
+
+    assert result.status == "satisfied"
+    assert result.matched == "20.11.1"
+    assert result.caller_exit_code == 0
+    assert result.binary_info == binary_info
+
+
+def test_binary_info_not_provided_returns_satisfied():
+    """When no binary info is provided, status should be satisfied (no check)."""
+    from app.core.resolver import _from_request
+    from app.core.semver import parse_installed, parse_request
+
+    installed_versions = parse_installed(["20.11.1"])
+    binary_info = {}
+
+    constraint = parse_request("20.11.1")
+    base = {"lts_snapshot": "2026-10-14", "lts_latest_codename": "krypton", "lts_latest_major": 24}
+
+    result = _from_request(
+        source="node-version",
+        requested="20.11.1",
+        installed=installed_versions,
+        ignored=(),
+        base=base,
+        binary_info=binary_info,
+    )
+
+    assert result.status == "satisfied"
+    assert result.matched == "20.11.1"
+    assert result.caller_exit_code == 0
     assert result.matched == "20.11.1"

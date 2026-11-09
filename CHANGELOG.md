@@ -1,8 +1,25 @@
 # Changelog
 
+## 1.4.0 — work-in-progress checkpoint
+
+Partial code published for continued development. Known issues: STATUS.md.
+
 ## 1.3.0 — work-in-progress checkpoint
 
 Partial code published for continued development. Known issues: STATUS.md.
+
+### Fixes since last checkpoint
+
+- Binary compatibility check now integrated into resolution creation: when `base_path` is provided, the resolver checks installed Node binaries and reports `incompatible` status if the matched binary cannot start (missing file, wrong architecture, non-executable)
+- Added `base_path` field to `ResolutionIn` schema and frontend `ResolutionInput` type
+- Fixed `BinaryInfo` serialization in `_insert_resolution` to use the version key instead of non-existent `info.version` attribute
+
+### Tests
+
+- Added resolver tests for binary compatibility: `test_incompatible_binary_returns_incompatible_status`, `test_compatible_binary_returns_satisfied_status`, `test_binary_info_not_provided_returns_satisfied`
+- Added API tests for binary check endpoint: `test_binary_check_endpoint_returns_compatibility_info`, `test_binary_check_endpoint_reports_missing_binary`
+- Added API tests for resolution with binary compatibility: `test_resolution_with_incompatible_binary_returns_incompatible_status`, `test_resolution_with_compatible_binary_returns_satisfied_status`
+
 
 ## 1.2.0 — work-in-progress checkpoint
 
