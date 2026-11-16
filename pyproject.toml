@@ -1,6 +1,6 @@
 [project]
 name = "cobalt-studio-alan-vo"
-version = "1.0.0"
+version = "1.5.0"
 description = "Deterministic Node.js pin resolver for machine-learning toolchains."
 authors = [{ name = "Alan Vo", email = "alanvo@gmail.com" }]
 readme = "README.md"
