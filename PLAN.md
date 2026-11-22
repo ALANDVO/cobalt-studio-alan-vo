@@ -38,7 +38,7 @@ Tests: `backend/tests/test_binary.py`, `backend/tests/test_api.py`, `backend/tes
 
 ### shell-activation — Emit shell activation that stays successful when a pin is missing
 
-Status: planned
+Status: done
 
 Acceptance:
 - A bash or zsh snippet applies a satisfied resolution and returns exit 0 when the pin is only missing.
