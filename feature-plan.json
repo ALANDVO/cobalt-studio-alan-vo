@@ -58,7 +58,7 @@
     {
       "id": "shell-activation",
       "title": "Emit shell activation that stays successful when a pin is missing",
-      "status": "planned",
+      "status": "done",
       "acceptance": [
         "A bash or zsh snippet applies a satisfied resolution and returns exit 0 when the pin is only missing.",
         "A fish snippet is generated from the same resolution.",
