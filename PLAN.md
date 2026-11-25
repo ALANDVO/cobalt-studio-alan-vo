@@ -47,7 +47,7 @@ Acceptance:
 
 ### manager-update-plan — Plan a manager update that checks out a tag
 
-Status: planned
+Status: done
 
 Acceptance:
 - An update plan names a tag to check out and does not stop on a detached FETCH_HEAD.

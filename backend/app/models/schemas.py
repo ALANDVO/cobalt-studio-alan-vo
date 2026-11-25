@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from pydantic import BaseModel, Field, field_validator
 
+from app.core.update_plan import UpdatePlan
+
 
 class ProjectIn(BaseModel):
     name: str = Field(min_length=1, max_length=80)
@@ -110,3 +112,16 @@ class BinaryCheckIn(BaseModel):
 
 class HealthOut(BaseModel):
     status: str
+
+
+class UpdatePlanIn(BaseModel):
+    tag: str = Field(min_length=1, max_length=100, description="Git tag to check out, e.g. 'v20.11.1'")
+    leave_installed: bool = Field(default=True, description="If True, already-installed Node releases are preserved")
+
+class UpdatePlanOut(BaseModel):
+    plan: "UpdatePlan"
+    description: str
+
+
+
+UpdatePlanOut.model_rebuild()
