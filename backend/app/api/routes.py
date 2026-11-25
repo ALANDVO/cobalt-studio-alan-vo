@@ -5,7 +5,10 @@ from __future__ import annotations
 from fastapi import APIRouter, HTTPException, Query, Request
 
 from app.core.version import product_version
+from app.core.update_plan import make_update_plan, plan_description
 from app.models.schemas import (
+    UpdatePlanIn,
+    UpdatePlanOut,
     BinaryCheckIn,
     BinaryInfoOut,
     HealthOut,
@@ -112,3 +115,9 @@ def check_binaries(body: BinaryCheckIn, request: Request) -> list[BinaryInfoOut]
         )
         for version, info in results.items()
     ]
+
+
+@router.post("/api/update-plan", response_model=UpdatePlanOut)
+def post_update_plan(body: UpdatePlanIn, request: Request) -> UpdatePlanOut:
+    plan = make_update_plan(body.tag, leave_installed=body.leave_installed)
+    return UpdatePlanOut(plan=plan, description=plan_description(plan))

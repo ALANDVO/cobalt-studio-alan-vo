@@ -68,7 +68,7 @@
     {
       "id": "manager-update-plan",
       "title": "Plan a manager update that checks out a tag",
-      "status": "planned",
+      "status": "done",
       "acceptance": [
         "An update plan names a tag to check out and does not stop on a detached FETCH_HEAD.",
         "The plan leaves already installed Node releases in place."
